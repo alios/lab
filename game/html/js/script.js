@@ -28,7 +28,7 @@
     }
 
     Hexagon.prototype.s = function() {
-	return 30;
+	return 50;
     }
 
     Hexagon.prototype.h = function () {
@@ -134,15 +134,31 @@ var mkGrid = function(canvas, hx, hy) {
     return that;
 }
 
+
+var mkInfo = function(info, grid) {
+    var that = {};
+    that.info = info;
+    that.grid = grid;
+
+/*    
+    that.tick = function () {
+	grid.
+    }
+*/
+
+    return that;
+}
+
 function init() {
     log("starting up application");
     // enable touch interactions if supported on the current device:
     if (Touch.isSupported()) { Touch.enable(stage); }
 
-    //associate the canvas with the stage
-    canvas = document.getElementById("map");
+    // make the grid
+    var hexgrid = mkGrid($("#map")[0], 128,128);   
 
-    var hexgrid = mkGrid(canvas, 15, 15);   
+    // make info field
+    var info = mkInfo($("#info")[0], hexgrid);
 }
 
 
