@@ -9,7 +9,7 @@ void setup() {
     println("a = " + Hexagon.a);
     println("b = " + Hexagon.b);
 
-    m = new Map(40,40);
+    m = new Map(100,100);
     noLoop();
     redraw();
 }
@@ -108,49 +108,47 @@ class Map
 
     
     PVector point2coord (float x, float y) {
-
-	double _x = (x/ms) - mx;
-	double _y = (y/ms) - my;
-
-	int ay = int(_y / Hexagon.b);
-        _x = ((ay % 2) == 0) ? _x : _x - Hexagon.r;
-	int ax = int(_x / Hexagon.a);
-    
-	double lx = _x - (ax * Hexagon.a);
-	double ly = _y - (ay * Hexagon.b);
+		
+	double xpixel = (x/ms) - mx;
+	double ypixel = (y/ms) - my;
 	
-	int d = 0;
+	int xsection = int(xpixel / ( 2 * Hexagon.r ));
+	int ysection = int(ypixel / ( Hexagon.h + 1 ));
+       
+	double xsectpxl = xpixel - xsection * ( 2 * Hexagon.r );
+	double ysectpxl = ypixel - ysection * ( Hexagon.h + 1 );
 	
-	if (lx < Hexagon.r) {  
-	    double _h1 = (Hexagon.r - lx) / Hexagon.h;
-	    if (ly <= _h1) {
-		d = Hexagon.DIR_NW
+	PVector retVal = new PVector(xsection, ysection);
+	double m = Hexagon.h / Hexagon.r;
+
+	if ((ysection % 2) == 0) {
+	    if (ysectpxl < (Hexagon.h - xsectpxl * m)) {
+		retVal = new PVector(retVal.x -1 , retVal.y - 1);
 	    }
 	    
-	    if (ly > (Hexagon.b - _h1)) {
-		d = Hexagon.DIR_SW;
+	    if (ysectpxl < (- Hexagon.h + xsectpxl * m)) {
+		retVal = new PVector(retVal.x , retVal.y - 1);
 	    }
 	} else {
-	    double _h2 = (Hexagon.a - lx) / Hexagon.h;
-	    if (ly <= _h2) {
-		d = Hexagon.DIR_NE;
+	    if (xsectpxl >=  Hexagon.r) {
+		if (ysectpxl < (2 * Hexagon.h - xsectpxl * m)) {
+		    retVal = new PVector(retVal.x , retVal.y - 1);
+		} 
 	    }
- 
-	    if (ly > (Hexagon.b - _h2)) {
-		d = Hexagon.DIR_SE;
-	    }	    
+
+	    if(xsectpxl < Hexagon.r) {
+		if (ysectpxl < (xsectpxl * m)) {
+		    retVal = new PVector(retVal.x, retVal.y - 1);
+		} else {
+		    retVal = new PVector(retVal.x -1 , retVal.y);
+		}
+	    }
 	}
 	
-	PVector retVal = new PVector(ax, ay);
-
-	if (d) {
-	    retVal = Hexagon.dirCoord(retVal, d);
-	}
-
 	return retVal;
     }
-
-
+    
+    
     void scroll(double x, double y) {
 	mx += x;
 	my += y;
@@ -190,20 +188,25 @@ class Map
     
     void display() {
 	pushMatrix();	
-
 	// do zoom
 	scale(ms);
 
 	// translate
 	translate(mx, my);
-
+	
+       	mmin = point2coord(0,0);
+	mmax = point2coord(width, height);
+	
 	// draw hexagon
+	int c = 0;
        	for (int i = 0; i <  hexagons.size(); ++i) {
-	    Hexagon h = (Hexagon) hexagons.get(i);
-	    h.display();
-	}
-
-
+	    Hexagon h = (Hexagon) hexagons.get(i);	    
+	    if ((h.hx >= mmin.x) && (h.hx <= mmax.x) &&
+		(h.hy >= mmin.y) && (h.hy <= mmax.y)) {
+		h.display();		
+		c++
+	    } 
+ 	}
 	popMatrix();
     }
 }
@@ -238,10 +241,8 @@ class Hexagon
 	    return new PVector(v.x - 1, v.y + 1);
 	case DIR_W:
 	    return new PVector(v.x - 1, v.y);
-
 	default:
 	    return null;
-		
 	}
     }
 
